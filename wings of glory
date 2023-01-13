@@ -1,0 +1,59 @@
+if not game.Loaded then game.Loaded:Wait() end
+wait(5)
+
+-- Make sure to have the script saved in your auto execute to have it be automated!
+-- Also the script will take like 5-8 seconds to get started, added some prints to
+-- show it's working
+
+local MouseMovement = 4 -- Would not recommend below 4 (changes how fast the mouse moves)
+local FireLength = 50 -- how long the AI will shoot for
+local ReloadLength = 10 -- how long inbetween shooting it will wait until it shoots again
+_G.Stop = false --Execute the script with this as true to make it stop
+
+-------------------------------------------------------
+
+
+-- ALSO, known bugs / things I wanted to do are commented throughout the code
+-- And of course this could easily be made a GUI to make it 100x better
+
+print("Starting")
+local plr = game.Players.LocalPlayer
+local MainMenu = plr.PlayerGui:WaitForChild("GUI")
+local Cam = game.Workspace.Camera
+local Mouse = plr:GetMouse()
+
+function ClickUI(UI)
+    for i,v in pairs(getconnections(UI.MouseButton1Click)) do
+        v:Fire()
+    end
+    for i,v in pairs(getconnections(UI.MouseButton1Down)) do
+        v:Fire()
+    end
+end
+
+function Closest()
+    -- I wanted to make it so it'd stick with the closest instead of switching a bunch
+    -- But never got around to doing that :P
+    local Lowest = 1e9
+    local Low = nil
+    local Plane = game:GetService("Workspace").viewmodels:FindFirstChild(plr.Name)
+    if not Plane then return nil end
+    for i,v in pairs(game:GetService("Workspace").Camera["plane_part_viewmodels"]:GetChildren()) do
+        if v and v ~= plr.Name and v:FindFirstChild("air_target_bb") and v["air_target_bb"].main.mark.team.main.label.Text ~= "FRIENDLY" then
+            local mag = (Plane.Position - v.Position).Magnitude
+            if mag < Lowest then
+                Lowest = mag
+                Low = v
+            end
+        end
+    end
+    return Low
+end
+
+function MouseTo(UI)
+    Vec = Vector2.new(UI.X,UI.Y) - Vector2.new(Mouse.X,Mouse.Y)
+    mousemoverel(Vec.X / MouseMovement,Vec.Y / MouseMovement)
+end
+
+function LockOn(P,CurrentlyLocked)
+    local LockPart = nil
